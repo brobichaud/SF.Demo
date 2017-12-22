@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="SFDemoType" ApplicationTypeVersion="1.45.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Parameters>
+    <Parameter Name="StatefulWorker_MinReplicaSetSize" DefaultValue="2" />
+    <Parameter Name="StatefulWorker_PartitionCount" DefaultValue="1" />
+    <Parameter Name="StatefulWorker_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="StatelessWorker_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="WebApi_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="StatelessWorker_Enabled" DefaultValue="false" />
+    <Parameter Name="StatelessWorker_Environment" DefaultValue="none" />
+  </Parameters>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="StatefulWorkerPkg" ServiceManifestVersion="1.5.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="StatelessWorkerPkg" ServiceManifestVersion="1.36.0" />
+    <ConfigOverrides>
+      <ConfigOverride Name="Config">
+        <Settings>
+          <Section Name="WorkerConfig">
+            <Parameter Name="Enabled" Value="[StatelessWorker_Enabled]" />
+            <Parameter Name="Environment" Value="[StatelessWorker_Environment]" />
+          </Section>
+        </Settings>
+      </ConfigOverride>
+    </ConfigOverrides>
+  </ServiceManifestImport>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="WebApiPkg" ServiceManifestVersion="1.11.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <DefaultServices>
+    <Service Name="StatefulWorker">
+      <StatefulService ServiceTypeName="StatefulWorkerType" TargetReplicaSetSize="[StatefulWorker_TargetReplicaSetSize]" MinReplicaSetSize="[StatefulWorker_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[StatefulWorker_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="StatelessWorker">
+      <StatelessService ServiceTypeName="StatelessWorkerType" InstanceCount="[StatelessWorker_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
+    <Service Name="WebApi">
+      <StatelessService ServiceTypeName="WebApiType" InstanceCount="[WebApi_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
+  </DefaultServices>
+</ApplicationManifest>
